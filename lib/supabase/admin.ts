@@ -9,10 +9,18 @@ const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
  * ⚠️ 只能在伺服器端程式碼使用（API Routes）。
  * 千萬不要在這個變數名稱前面加上 NEXT_PUBLIC_，也不要在 Client Component 裡 import 這支檔案，
  * 否則 service role key 會被打包進前端 JS，任何人都能取得資料庫完整寫入權限。
+ *
+ * 同樣明確指定 fetch 用 cache: "no-store"，
+ * 避免後台列表讀到 Vercel 快取住的舊資料。
  */
 export const supabaseAdmin =
   url && serviceRoleKey
-    ? createClient(url, serviceRoleKey, { auth: { persistSession: false } })
+    ? createClient(url, serviceRoleKey, {
+        auth: { persistSession: false },
+        global: {
+          fetch: (input, init) => fetch(input, { ...init, cache: "no-store" })
+        }
+      })
     : null;
 
 export const isSupabaseAdminConfigured = Boolean(url && serviceRoleKey);
